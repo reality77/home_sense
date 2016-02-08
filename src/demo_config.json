@@ -1,0 +1,14 @@
+{
+    "server":{
+    
+    },
+    "weather":{
+    	"city":"New York,us",
+        "openweather_apikey": "xxxxxxxxxxxxxxxxx",
+        "openweather_apiurl": "http://api.openweathermap.org/data/2.5/forecast?q={}&mode=json&units=metric&appid={}&cnt={}",
+        "api_3hblocks_count" : 4,
+    },
+    "busgo":{
+    
+    },
+}
