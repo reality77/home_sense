@@ -366,7 +366,7 @@ if __name__ == "__main__":
    RX=20
    TX=21
 
-   BPS=20000
+   BPS=2000
 
    pi = pigpio.pi() # Connect to local Pi.
 
@@ -387,6 +387,8 @@ if __name__ == "__main__":
       time.sleep(0.1)
 
       tx.put("{:04d}".format(msg))
+      
+      print "message sent"
 
       while not tx.ready():
          time.sleep(0.02)
@@ -395,8 +397,12 @@ if __name__ == "__main__":
 
       tx.put("Hello World #{:04d}!".format(msg))
 
+      print "message 2 sent"
+
       while rx.ready():
          print("".join(chr (c) for c in rx.get()))
+
+      print "stopping"
 
    rx.cancel() # Cancel Virtual Wire receiver.
    tx.cancel() # Cancel Virtual Wire transmitter.

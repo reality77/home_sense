@@ -28,7 +28,10 @@ class LedCommunication:
    
 
    def __init__(self):
-      self.ledcom_pi = pigpio.pi() 
+      return
+
+   def setPi(self, pi):
+      self.ledcom_pi = pi
       self.ledcom_tx = vw.tx(self.ledcom_pi, LED_COM_TX, LED_COM_BPS) 
      
    def sendLedColors(self, data_array):
@@ -39,15 +42,19 @@ class LedCommunication:
 
    def sendToLed(self, data_array):
      while not self.ledcom_tx.ready():
-         time.sleep(0.1)
-     time.sleep(0.5)
+         time.sleep(0.05)
+     time.sleep(0.1)
 
-     return self.ledcom_tx.put(data_array);
+     v = self.ledcom_tx.put(data_array);
+     time.sleep(0.1)
+     v = self.ledcom_tx.put(data_array);
+     time.sleep(0.1)
+     v = self.ledcom_tx.put(data_array);
+     time.sleep(0.1)
+     return v
 
    def close(self): 
       self.ledcom_tx.cancel()
-      self.ledcom_pi.stop()
-
 
 # ****************************** TEST **************************
 
