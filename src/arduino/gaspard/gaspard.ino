@@ -14,19 +14,17 @@
 
 #include <VirtualWire.h>
 
-int compteur = 0;
-
-const char *msg = "GASPARD-";
-char nombre[VW_MAX_MESSAGE_LEN];
-char message[VW_MAX_MESSAGE_LEN]; 
+int counter = 0;
 
 void setup()
 {
-    //Serial.begin(9600);    // Debugging only
-
+    Serial.begin(9600);    // Debugging only
+    Serial.println("Demarrage");
     pinMode(13, OUTPUT);
+    pinMode(A1, INPUT);
 
     // Initialise the IO and ISR
+    vw_set_tx_pin(7);
     vw_set_ptt_inverted(true); // Required for DR3100
     vw_setup(2000);  // Bits per sec
     digitalWrite(13, LOW);
@@ -34,25 +32,39 @@ void setup()
 
 void loop()
 {
-    compteur++;
+    counter++;
 
-    int humidite = analogRead(A0);
-
-    //Serial.print("Moisture Sensor Value:");
-    //Serial.println(humidite);  
+    int humidity = analogRead(A0);
+    int light = analogRead(A1);
     
-    // Conversion du int en tableau de chars
-    itoa(humidite,nombre,10); // 10 car décimal
-    strcpy (message, msg);
-    strcat(message,nombre);
-
-    //Serial.print("Préparation envoi\r\n");
+    Serial.print("Moisture Sensor Value:");
+    Serial.println(humidity);  
+    Serial.print("Light Sensor Value:");
+    Serial.println(light);  
+    
+    int LEN_DATA = 6;
+    byte data[LEN_DATA];
+    data[0] = 0xFE; // "sensor" mode for server 
+    data[1] = 0x01; // sensor ID
+    data[2] = light >> 8; // light sensor value (high)
+    data[3] = light ^ (data[2] << 8); // light sensor value (low)
+    data[4] = humidity >> 8; // moisture sensor value (high)
+    data[5] = humidity ^ (data[4] << 8); // moisture sensor value (low)
+    
+    Serial.print("Prepare to send\r\n");
 
     digitalWrite(13, HIGH); // Flash a light to show transmitting
-    vw_send((uint8_t *)message, strlen(message));
+    vw_send(data, LEN_DATA);
+    vw_wait_tx(); // Wait until the whole message is gone
+    delay(500);
+    vw_send(data, LEN_DATA);
+    vw_wait_tx(); // Wait until the whole message is gone
+    delay(500);
+    vw_send(data, LEN_DATA);
     vw_wait_tx(); // Wait until the whole message is gone
     digitalWrite(13, LOW);
 
-    //Serial.print("Envoi OK\r\n");
-    delay(60000);
+    Serial.print("Data sent\r\n");
+    //delay(60000);
+    delay(5000);
 }
