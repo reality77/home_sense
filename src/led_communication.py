@@ -28,10 +28,7 @@ class LedCommunication:
    
 
    def __init__(self):
-      return
-
-   def setPi(self, pi):
-      self.ledcom_pi = pi
+      self.ledcom_pi = pigpio.pi()
       self.ledcom_tx = vw.tx(self.ledcom_pi, LED_COM_TX, LED_COM_BPS) 
      
    def sendLedColors(self, data_array):

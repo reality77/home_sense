@@ -18,6 +18,7 @@ from busgo import BusGo
 from led_communication import LedCommunication
 from weather import Weather
 from receiver import Receiver
+from testled import TestLed
 
 #********************* Init GPIO
 #led_working = 19
@@ -48,9 +49,9 @@ MODE__MAX = 4
 MAX_SEND_RETRIES = 3
 
 _oBusgo = BusGo()
-_oTestled = None #TestLed()
+_oTestled = TestLed()
 _oWeather = Weather()
-_oMoisture = None #Moisture()
+_oMoisture = TestLed()
 
 _ledComm = LedCommunication()
 _rx = Receiver()
@@ -125,7 +126,7 @@ def stopWorking() :
 # **************************** MAIN *******************
 
 #test
-_current = _oWeather
+_current = _oTestled
 _current.onSelect()
 #fin test
 

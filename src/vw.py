@@ -404,6 +404,8 @@ if __name__ == "__main__":
 
       print "stopping"
 
+      time.sleep(5)
+
    rx.cancel() # Cancel Virtual Wire receiver.
    tx.cancel() # Cancel Virtual Wire transmitter.
 
