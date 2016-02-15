@@ -2,11 +2,12 @@
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
   #include <avr/power.h>
+  #include <avr/sleep.h>
 #endif
 
 #define PIN 6
-#define PIN_LED 2
-#define PIN_INTERNAL_LED 13
+#define PIN_RECV 2
+#define PIN_MESSAGE 13
 #define LED_COUNT 30
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
@@ -23,8 +24,8 @@ void setup()
     vw_set_rx_pin(11);
     vw_rx_start();  // Activation de la partie réception de la librairie VirtualWire
 
-    pinMode(PIN_LED, OUTPUT);
-    pinMode(PIN_INTERNAL_LED, OUTPUT);
+    pinMode(PIN_RECV, OUTPUT);
+    pinMode(PIN_MESSAGE, OUTPUT);
 
     strip.begin();
     strip.setBrightness(8);
@@ -44,11 +45,11 @@ void loop()
     
     if (vw_wait_rx_max(1000)) // Si un message est reçu dans les 200ms qui viennent
     {
-        digitalWrite(PIN_LED, HIGH);
+        digitalWrite(PIN_RECV, HIGH);
 
         if (vw_get_message(buf, &buflen)) // On copie le message, qu'il soit corrompu ou non
         {
-            digitalWrite(PIN_INTERNAL_LED, HIGH);
+            digitalWrite(PIN_MESSAGE, HIGH);
             int mode = (int)buf[0];
       
             char data[255];
@@ -95,12 +96,12 @@ void loop()
               break;
             }
 
-            digitalWrite(PIN_INTERNAL_LED, LOW);
+            digitalWrite(PIN_MESSAGE, LOW);
         }
         else
           Serial.println("***** BAD DATA RECEIVED");
 
-        digitalWrite(PIN_LED, LOW);
+        digitalWrite(PIN_RECV, LOW);
     }
 
     // --- execute command if any
@@ -136,6 +137,21 @@ void loop()
         strip.show();
         Serial.println("Mode 3 done");
       }
+      break;
+      case 0xFF:
+      {
+        Serial.println("Entering sleep mode ...");
+        set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+        sleep_enable();
+
+        sleep_mode(); // Arduino is now sleeping
+
+        // ... ending sleep mode
+
+        sleep_disable();
+        Serial.println("Exiting sleep mode");
+      }
+      break;
      }
     
 }
