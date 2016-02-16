@@ -19,6 +19,7 @@ from led_communication import LedCommunication
 from weather import Weather
 from receiver import Receiver
 from testled import TestLed
+from sensor import Sensor
 
 #********************* Init GPIO
 #led_working = 19
@@ -35,6 +36,9 @@ GPIO.setup(button_select_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(button_mode_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 #********************* Init global variables
+with open('config.json') as json_data_file:
+	config = json.load(json_data_file)['server']
+
 ready_to_shutdown = False
 current_mode = 0
 
@@ -43,7 +47,7 @@ MODE_STOP = 0
 MODE_TESTLED = 1
 MODE_BUSGO = 2
 MODE_WEATHER = 3
-MODE_GASPARD = 4
+MODE_SENSOR = 4
 MODE__MAX = 4
 
 MAX_SEND_RETRIES = 3
@@ -51,7 +55,7 @@ MAX_SEND_RETRIES = 3
 _oBusgo = BusGo()
 _oTestled = TestLed()
 _oWeather = Weather()
-_oMoisture = TestLed()
+_oSensor = Sensor()
 
 _ledComm = LedCommunication()
 _rx = Receiver()
@@ -100,9 +104,9 @@ def button_mode_click(channel):
     elif current_mode == MODE_WEATHER:
         display("WHTR")
         _current = _oWeather
-    elif current_mode == MODE_GASPARD:
-        display("HUM")
-        _current = _oMoisture
+    elif current_mode == MODE_SENSOR:
+        display("SENS")
+        _current = _oSensor
 
     disp = _current.onSelect()
     if not(disp is None) and disp != "":
