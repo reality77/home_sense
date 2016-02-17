@@ -5,8 +5,10 @@ with open('config.json') as json_data_file:
     DATA_DIR = config['server']['data_directory']
     config = config['clients']
 
-DELAY = 5000
+DELAY = 5 * 60 # in seconds
+TOTAL_LEDS = 30
 
+COLOR_BLACK = [0x00, 0x00, 0x00]
 COLOR_VIOLET = [0xFF, 0x00, 0xFF]
 COLOR_LIGHT_VIOLET = [0x88, 0x00, 0xFF]
 COLOR_BLUE = [0x00, 0x00, 0xFF]
@@ -36,7 +38,7 @@ class Sensor:
                         self.lastApiCallTimer = timerSec
 			sensors = self.client['sensors']
 
-			ledcountBySensor = len(sensors) / 30
+			ledcountBySensor = int(TOTAL_LEDS / len(sensors))
 			led_index = 0
 			data = [0x02]
 
@@ -64,9 +66,9 @@ class Sensor:
 
 				color = COLOR_BLUE
 				if type == "humidity":
-					if value < 200:
+					if value < 300:
 						color = COLOR_ORANGE
-					elif value < 400:
+					elif value < 700:
 						color = COLOR_LIGHT_BLUE
 					else:
 						color = COLOR_BLUE
@@ -76,8 +78,23 @@ class Sensor:
 				led_index = led_index + ledcountBySensor
 				index += 1
 
-			data.append(int(value * ledcountBySensor / max_value))
-			data.extend(color)
+				ledcount = int(value * ledcountBySensor / max_value)
+				if ledcount == 0:
+					ledcount = 1
+				data.append(ledcount)
+				data.extend(color)
+
+				print "ledcountBySensor = " + str(ledcountBySensor)
+				print "ledcount = " + str(ledcount)
+				print "value = " + str(value)
+				print "max_value = " + str(max_value)
+
+				#turn off the rest of the LEDs for this sensor
+				if ledcount < ledcountBySensor:
+					data.append(ledcountBySensor - ledcount)
+					data.extend(COLOR_BLACK)
+
+			print data
 			self.ledData = bytearray(data)
 			return True
 		else:
