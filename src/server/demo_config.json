@@ -1,6 +1,7 @@
 {
     "server":{
-    
+	"data_directory":"/home/xxxxxx/Documents/home_sense_data/",
+	"external_debug_mode":1
     },
     "weather":{
     	"city":"New York,us",
@@ -17,5 +18,21 @@
 		"source_address":"",
 		"target_address":""
 	    }]
-    }
+    },
+    "clients":[
+	{
+	    "id_client":1,
+	    "text":"XXXX",
+	    "sensors":[
+		{
+		    "type":"humidity",
+		    "max_value":1023
+		},
+		{
+   	    	    "type":"light",
+		    "max_value":1023
+		}
+	    ]
+	}
+    ]
 }

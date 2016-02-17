@@ -1,9 +1,9 @@
 import json
 
 with open('config.json') as json_data_file:
-    config = json.load(json_data_file)['server']
-    DATA_DIR = config['data_directory']
-    config = json.load(json_data_file)['clients']
+    config = json.load(json_data_file)
+    DATA_DIR = config['server']['data_directory']
+    config = config['clients']
 
 DELAY = 5000
 
@@ -27,45 +27,56 @@ class Sensor:
 		self.client = None
 		self.ledData = None
 
-	def readInt(highValue, lowValue):
+	def readInt(self, highValue, lowValue):
 		val = (highValue << 8) + lowValue
 		return val
 
 	def onRun(self, timerSec):
 		if (not(self.client is None) and ((self.lastApiCallTimer is None) or (timerSec - self.lastApiCallTimer > DELAY))):
                         self.lastApiCallTimer = timerSec
-			sensor = self.client['sensors'][0]
+			sensors = self.client['sensors']
 
+			ledcountBySensor = len(sensors) / 30
+			led_index = 0
+			data = [0x02]
+
+			#read client file
+			f = None
+			filedata = bytearray()
 			try:
-				filedata = bytearray()
-				f = open(data_directory + str(self.id_client), "r")
+				f = open(DATA_DIR + str(self.id_client), "r")
 				x = f.read(1)
 				while x != "":
 					filedata.append(x)
 					x = f.read(1)
 			finally:
-				f.close()
+				if not(f is None):
+					f.close()
+			index = 0
+			for sensor in sensors:
+				type = sensor['type']
+				max_value = sensor['max_value']
+				print "sensor index = " + str(index)
 
-			print "data = " + str(filedata)
-			value = self.readInt(filedata[0], filedata[1]) 
+				# read sensor data (2 bytes per sensor)
+				value = self.readInt(filedata[index * 2], filedata[index * 2 + 1])
+				print "value = " + str(value)
 
-			type = sensor['type']
-			maxvalue = sensor['max_value']
-			color = COLOR_BLUE
-			if type == "humidity":
-				if value < 200:
-					color = COLOR_ORANGE
-				elif value < 400:
-					color = COLOR_LIGHT_BLUE
-				else:
-					color = COLOR_BLUE
-			elif type == "light":
-				color = COLOR_YELLOW
+				color = COLOR_BLUE
+				if type == "humidity":
+					if value < 200:
+						color = COLOR_ORANGE
+					elif value < 400:
+						color = COLOR_LIGHT_BLUE
+					else:
+						color = COLOR_BLUE
+				elif type == "light":
+					color = COLOR_YELLOW
 
-			ledcount = maxvalue
+				led_index = led_index + ledcountBySensor
+				index += 1
 
-			data = [0x02]
-			data.append(value * 30 / maxvalue)
+			data.append(int(value * ledcountBySensor / max_value))
 			data.extend(color)
 			self.ledData = bytearray(data)
 			return True
@@ -91,5 +102,5 @@ if __name__ == '__main__':
 	w = Sensor()
 	w.onSelect()
 	w.onRun(1)
-	print w.getLedData()
+	print bytes(w.getLedData())
 

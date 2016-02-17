@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
-EXTERNAL_DEBUG_MODE = 0
-
 import time
 import json
+
+with open('config.json') as json_data_file:
+	config = json.load(json_data_file)['server']
+EXTERNAL_DEBUG_MODE = config['external_debug_mode']
+
 
 if EXTERNAL_DEBUG_MODE:
 	from DBG_receiver import Receiver
 else:
 	from receiver import Receiver
-
-with open('config.json') as json_data_file:
-	config = json.load(json_data_file)['server']
 
 # ************************** FUNCTIONS *********************
 def readInt(highValue, lowValue):
