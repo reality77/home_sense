@@ -10,7 +10,15 @@
 #define PIN_MESSAGE 13
 #define LED_COUNT 30
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
+
+unsigned long _sleepStartTimer = 0;
+unsigned long _sleepSOFTInterval = 5 * 60 * 1000; // 5 minutes
+unsigned long _sleepSHUTLEDInterval = 30 * 60 * 1000; // 30 minutes
+unsigned long _sleepHARDInterval = 60 * 60 * 1000; // 60 minutes
+
+unsigned short _brightness = 127
+unsigned short _brightnessLow = 8
 
 void setup()
 {
@@ -28,10 +36,39 @@ void setup()
     pinMode(PIN_MESSAGE, OUTPUT);
 
     strip.begin();
-    strip.setBrightness(8);
+    strip.setBrightness(_brightness);
     strip.show(); // Initialize all pixels to 'off'
+    
+    resetTimer();
 }
- 
+
+void resetTimer()
+{
+    _sleepStartTimer = millis();
+}
+
+void checkSleep()
+{
+    unsigned long interval = millis() - _sleepStartTimer;
+    
+    if(interval > _sleepHARDInterval)
+    {
+        Serial.println("SLEEP HARD - TODO");
+    }
+    else if(interval > _sleepSHUTLEDInterval)
+    {
+        Serial.println("SLEEP LED LOW");
+        strip.clear();
+        strip.show();
+    }
+    else if(interval > _sleepSOFTInterval)
+    {
+        Serial.println("SLEEP SOFT");
+        strip.setBrightness(_brightnessLow);
+        strip.show();
+    }
+}
+
 void loop()
 {
     uint8_t buf[VW_MAX_MESSAGE_LEN]; // Tableau qui va contenir le message reçu (de taille maximum VW_MAX_MESSAGE_LEN)
@@ -49,6 +86,7 @@ void loop()
 
         if (vw_get_message(buf, &buflen)) // On copie le message, qu'il soit corrompu ou non
         {
+            resetTimer();
             digitalWrite(PIN_MESSAGE, HIGH);
             int mode = (int)buf[0];
       
@@ -152,8 +190,9 @@ void loop()
         Serial.println("Exiting sleep mode");
       }
       break;
-     }
+    }
     
+    checkSleep();
 }
 
 void modeSetLedColors(uint8_t* buf, uint8_t buflen)
