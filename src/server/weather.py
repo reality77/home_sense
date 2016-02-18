@@ -161,7 +161,11 @@ class Weather:
 		
 		result.condition = w['weather'][0]['id']
 		result.cloud_percent = w['clouds']['all']
-		result.rain3h = w['rain'].get('3h', 0)
+		rain = w.get('rain', 0)
+		if rain != 0:
+			result.rain3h = w['rain'].get('3h', 0)
+		else:
+			result.rain3h = 0
 		snow = w.get('snow', 0)
 		if snow != 0:
 			result.snow3h = w['snow'].get('3h', 0)
