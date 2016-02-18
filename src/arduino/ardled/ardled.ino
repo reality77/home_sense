@@ -10,15 +10,18 @@
 #define PIN_MESSAGE 13
 #define LED_COUNT 30
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(30, PIN, NEO_GRB + NEO_KHZ800);
+#define BRIGHTNESS_HIGH 127
+#define BRIGHTNESS_LOW 8
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
 
 unsigned long _sleepStartTimer = 0;
 unsigned long _sleepSOFTInterval = 5 * 60 * 1000; // 5 minutes
-unsigned long _sleepSHUTLEDInterval = 30 * 60 * 1000; // 30 minutes
+unsigned long _sleepLEDOFFInterval = 30 * 60 * 1000; // 30 minutes
 unsigned long _sleepHARDInterval = 60 * 60 * 1000; // 60 minutes
+unsigned short _currentSleepMode = 0;
 
-unsigned short _brightness = 127
-unsigned short _brightnessLow = 8
+unsigned short _currentBrightness
 
 void setup()
 {
@@ -36,8 +39,7 @@ void setup()
     pinMode(PIN_MESSAGE, OUTPUT);
 
     strip.begin();
-    strip.setBrightness(_brightness);
-    strip.show(); // Initialize all pixels to 'off'
+    setBrightness(BRIGHTNESS_HIGH);
     
     resetTimer();
 }
@@ -45,29 +47,72 @@ void setup()
 void resetTimer()
 {
     _sleepStartTimer = millis();
+    _currentSleepMode = 0;
 }
 
 void checkSleep()
 {
     unsigned long interval = millis() - _sleepStartTimer;
     
-    if(interval > _sleepHARDInterval)
+    if(interval > _sleepHARDInterval && _currentSleepMode < 3)
     {
-        Serial.println("SLEEP HARD - TODO");
+        _currentSleepMode = 3;
+        Serial.println("SLEEP MODE 3 : HARD ====> TODO");
     }
-    else if(interval > _sleepSHUTLEDInterval)
+    else if(interval > _sleepLEDOFFInterval && _currentSleepMode < 2)
     {
-        Serial.println("SLEEP LED LOW");
+        _currentSleepMode = 2;
+        Serial.println("SLEEP MODE 2 : LED OFF");
         strip.clear();
         strip.show();
     }
-    else if(interval > _sleepSOFTInterval)
+    else if(interval > _sleepSOFTInterval && _currentSleepMode < 1)
     {
-        Serial.println("SLEEP SOFT");
-        strip.setBrightness(_brightnessLow);
-        strip.show();
+        _currentSleepMode = 1;
+        Serial.println("SLEEP MODE 1 : SOFT");
+        setSmoothBrightness(BRIGHTNESS_LOW);
     }
 }
+
+void setBrightness(unsigned short brightness)
+{
+    _currentBrightness = brightness;
+    strip.setBrightness(BRIGHTNESS_LOW);
+    strip.show();    
+}
+
+void setSmoothBrightness(unsigned short brightness)
+{
+    // change 10 points of brightness each 100ms
+    int i;
+    
+    if(_currentBrightness > brightness)
+    {
+        for (i = _currentBrightness; i <= brightness; i -= 10)
+        {
+            delay(100);
+            if(i < brightness)
+                i = brightness;
+            strip.setBrightness(i);
+            strip.show();
+        }
+    }
+    else
+    {
+        for (i = _currentBrightness; i >= brightness; i += 10)
+        {
+            delay(100);
+            if(i > brightness)
+                i = brightness;
+            strip.setBrightness(i);
+            strip.show();
+        }
+    }
+    
+    _currentBrightness = brightness;
+}
+
+// ************************** LOOP *****************************
 
 void loop()
 {
