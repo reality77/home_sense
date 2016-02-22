@@ -8,6 +8,19 @@ TODO :
 but for the first click on the SELECT button to change it
 - Receiver management
 """
+import json
+
+with open('config.json') as json_data_file:
+	config = json.load(json_data_file)['server']
+EXTERNAL_DEBUG_MODE = config['external_debug_mode']
+
+
+if EXTERNAL_DEBUG_MODE:
+    from DBG_led_communication import LedCommunication
+    from DBG_receiver import Receiver
+else:
+    from led_communication import LedCommunication
+    from receiver import Receiver
 
 from datetime import datetime
 from datetime import timedelta
@@ -16,9 +29,7 @@ import time
 import os
 import json
 from busgo import BusGo
-from led_communication import LedCommunication
 from weather import Weather
-from receiver import Receiver
 from testled import TestLed
 from sensor import Sensor
 
