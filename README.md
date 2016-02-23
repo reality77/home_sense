@@ -77,5 +77,5 @@ If you wish to use the busgo data, fill the parameters :
 # Thank to ...
 
 ... other projects contributors :
-- [VirtualWire implementation for Raspberry Pi](../../joan2937/pigpio)
-- [google maps services for python](../../googlemaps/google-maps-services-python)
+- [VirtualWire implementation for Raspberry Pi](https://github.com/joan2937/pigpio)
+- [google maps services for python](https://github.com/googlemaps/google-maps-services-python)
