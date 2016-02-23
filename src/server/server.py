@@ -18,13 +18,14 @@ EXTERNAL_DEBUG_MODE = config['external_debug_mode']
 if EXTERNAL_DEBUG_MODE:
     from DBG_led_communication import LedCommunication
     from DBG_receiver import Receiver
+    import DBG_GPIO
 else:
     from led_communication import LedCommunication
     from receiver import Receiver
+    import RPi.GPIO as GPIO
 
 from datetime import datetime
 from datetime import timedelta
-import RPi.GPIO as GPIO
 import time
 import os
 import json
@@ -36,9 +37,7 @@ from sensor import Sensor
 #********************* Init GPIO
 #led_working = 19
 #led_power = 22
-#button_select_out = 21
 button_select_in = 19
-#button_mode_out = 0 #TODO
 button_mode_in = 26
 
 GPIO.setmode(GPIO.BCM)
