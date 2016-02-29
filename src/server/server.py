@@ -52,6 +52,7 @@ with open('config.json') as json_data_file:
 
 ready_to_shutdown = False
 current_mode = 0
+automatic_mode = 0
 
 MODE__MIN = 0
 MODE_STOP = 0
@@ -141,8 +142,8 @@ def stopWorking() :
 # **************************** MAIN *******************
 
 #test
-_current = _oTestled
-_current.onSelect()
+#_current = _oTestled
+#_current.onSelect()
 #fin test
 
 GPIO.add_event_detect(button_select_in, GPIO.RISING, callback=button_select_click, bouncetime=500)
@@ -181,7 +182,7 @@ if True:
                 _ledComm.sendLedReset()
                 print "LED Reset"
             
-
+    #TODO : Remove the reception part (_rx). A specific receiver_server replaces this part.
 	while _rx.ready():
 	    print("".join(chr (c) for c in _rx.get()))
 
