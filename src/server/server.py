@@ -18,18 +18,19 @@ EXTERNAL_DEBUG_MODE = config['external_debug_mode']
 if EXTERNAL_DEBUG_MODE:
     from DBG_led_communication import LedCommunication
     from DBG_receiver import Receiver
-    import DBG_GPIO
+    import DBG_GPIO as GPIO
+    from DBG_busgo import BusGo
 else:
     from led_communication import LedCommunication
     from receiver import Receiver
     import RPi.GPIO as GPIO
+    from busgo import BusGo
 
 from datetime import datetime
 from datetime import timedelta
 import time
 import os
 import json
-from busgo import BusGo
 from weather import Weather
 from testled import TestLed
 from sensor import Sensor
@@ -182,23 +183,17 @@ if True:
                 _ledComm.sendLedReset()
                 print "LED Reset"
             
-    #TODO : Remove the reception part (_rx). A specific receiver_server replaces this part.
-	while _rx.ready():
-	    print("".join(chr (c) for c in _rx.get()))
-
         delta = (datetime.now() - timer_current)
         sleepduration = delta.total_seconds() * 1000 + delta.microseconds / 1000
 
         print sleepduration
 
-        if sleepduration < 1000:
+        if sleepduration < TOTAL_SLEEP:
             time.sleep(TOTAL_SLEEP - sleepduration / 1000.0)
             print "Sleep : " + str(TOTAL_SLEEP - sleepduration / 1000.0)
         else:
             print "No sleep"
         timer_lastloop = timer_current;   
-
-        time.sleep(TOTAL_SLEEP)
 #except:
     try:
         if not(_current is None):
