@@ -54,7 +54,7 @@ with open('config.json') as json_data_file:
 
 ready_to_shutdown = False
 current_mode = 0
-automatic_mode = 1
+automatic_mode = True
 
 _timerCheck = TimerCheck()
 
@@ -74,14 +74,14 @@ _oWeather = Weather()
 _oSensor = Sensor()
 
 _ledComm = LedCommunication()
-_rx = Receiver()
 
 _current = None
 _old = None
 
 # **************** Shutdown button
 def button_select_click(channel):
-    global current_mode, ready_to_shutdown
+    global current_mode, ready_to_shutdown, automatic_mode
+    automatic_mode = True
     if current_mode == MODE_STOP:
         if not ready_to_shutdown :
             display("STP?")
@@ -90,7 +90,7 @@ def button_select_click(channel):
             display("SHUT")
 	    if not(EXTERNAL_DEBUG_MODE):
 		GPIO.cleanup()
-	        os.system("shutdown now -h")
+	        os.system("sudo shutdown now -h")
 	    else:
 		print("DEBUG : SHUTDOWN BUTTON CLICKED")
 	    exit
@@ -100,7 +100,8 @@ def button_select_click(channel):
 
 # **************** Mode button
 def button_mode_click(channel):
-    global current_mode
+    global current_mode, automatic_mode
+    automatic_mode = False
     mode = current_mode
     mode += 1
     if mode > MODE__MAX:
@@ -109,8 +110,7 @@ def button_mode_click(channel):
 
 # **************** Mode button
 def changeMode(mode):
-    global current_mode, ready_to_shutdown, _old, _current, ledstrip_data, ledstrip_retry
-    automatic_mode = 0
+    global current_mode, ready_to_shutdown, _old, _current, ledstrip_data, ledstrip_retry, automatic_mode
     ready_to_shutdown = False
 
     if mode == current_mode:
@@ -191,12 +191,12 @@ if True:
 	    	# Auto-mode activated
 		mode = int(timerData['mode'])
 	    	if changeMode(mode):
-		    print "Automatic mode changed"
+		    print "--- Automatic mode changed"
 	    else:
 		# Auto-mode stopped
 		if current_mode != MODE_STOP:
 		    changeMode(MODE_STOP)
-		    print "Automatic mode stopped"
+		    print "--- Automatic mode stopped"
 
         if not(_current is None):
             print "Running"
@@ -231,8 +231,6 @@ if True:
             _current.onStop()
         display("ERR")
 
-	_rx.close()
-        
         # 3 attempts to light off the led strip
         _ledComm.sendLedReset()
         sleep(2)
