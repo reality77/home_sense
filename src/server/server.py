@@ -34,6 +34,7 @@ import json
 from weather import Weather
 from testled import TestLed
 from sensor import Sensor
+from timer_check import TimerCheck
 
 #********************* Init GPIO
 #led_working = 19
@@ -53,7 +54,9 @@ with open('config.json') as json_data_file:
 
 ready_to_shutdown = False
 current_mode = 0
-automatic_mode = 0
+automatic_mode = 1
+
+_timerCheck = TimerCheck()
 
 MODE__MIN = 0
 MODE_STOP = 0
@@ -85,32 +88,47 @@ def button_select_click(channel):
             ready_to_shutdown = True
         else :
             display("SHUT")
-            GPIO.cleanup()
-            os.system("shutdown now -h")
-            exit
+	    if not(EXTERNAL_DEBUG_MODE):
+		GPIO.cleanup()
+	        os.system("shutdown now -h")
+	    else:
+		print("DEBUG : SHUTDOWN BUTTON CLICKED")
+	    exit
     else :
         if not(_current is None):
             _current.onSelect()
 
 # **************** Mode button
 def button_mode_click(channel):
+    global current_mode
+    mode = current_mode
+    mode += 1
+    if mode > MODE__MAX:
+        mode = MODE__MIN
+    changeMode(mode)
+
+# **************** Mode button
+def changeMode(mode):
     global current_mode, ready_to_shutdown, _old, _current, ledstrip_data, ledstrip_retry
-    current_mode += 1
+    automatic_mode = 0
     ready_to_shutdown = False
-    if current_mode > MODE__MAX:
-        current_mode = MODE__MIN
-    
+
+    if mode == current_mode:
+	return 0
+
+    current_mode = mode
+
     _old = _current
-    
+
     if not(_old is None):
         _old.onStop()
-    
+
     if current_mode == MODE_STOP:
         display("STOP")
         _current = None
     elif current_mode == MODE_TESTLED:
         display("TEST")
-        _current = _oTestled 
+        _current = _oTestled
     elif current_mode == MODE_BUSGO:
         display("BUS")
         _current = _oBusgo
@@ -121,12 +139,14 @@ def button_mode_click(channel):
         display("SENS")
         _current = _oSensor
 
-    disp = _current.onSelect()
-    if not(disp is None) and disp != "":
-    	display(disp)    
+    if not(_current is None):
+        disp = _current.onSelect()
+        if not(disp is None) and disp != "":
+            display(disp)
     ledstrip_data = None
     ledstrip_retry = 0
-    
+    return 1
+
 def display(data):
     #TODO Affichage alphanumerique
     print("Display : " + data)
@@ -164,7 +184,20 @@ if True:
     while 1:
 
         timer_current = datetime.now()
-        
+
+	if automatic_mode:
+	    timerData = _timerCheck.check()
+	    if not(timerData is None):
+	    	# Auto-mode activated
+		mode = int(timerData['mode'])
+	    	if changeMode(mode):
+		    print "Automatic mode changed"
+	    else:
+		# Auto-mode stopped
+		if current_mode != MODE_STOP:
+		    changeMode(MODE_STOP)
+		    print "Automatic mode stopped"
+
         if not(_current is None):
             print "Running"
             startWorking()
@@ -172,7 +205,7 @@ if True:
                 ledstrip_data = _current.getLedData()
                 ledstrip_retry = 0
             stopWorking()
-        
+
         if ledstrip_retry < MAX_SEND_RETRIES:
             print "LED retry : " + str(ledstrip_retry)
             ledstrip_retry = ledstrip_retry + 1
@@ -182,7 +215,7 @@ if True:
             else:
                 _ledComm.sendLedReset()
                 print "LED Reset"
-            
+
         delta = (datetime.now() - timer_current)
         sleepduration = delta.total_seconds() * 1000 + delta.microseconds / 1000
 

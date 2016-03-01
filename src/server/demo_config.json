@@ -37,13 +37,13 @@
     ],
     "timers":[
 	{
-	    "type":"WEEKDAYS",
+	    "type":1,
 	    "mode":3,
 	    "start-time":"07:30",
 	    "end-time":"07:55"
 	},
 	{
-	    "type":"WEEKDAYS",
+	    "type":1,
 	    "mode":2,
 	    "start-time":"07:55",
 	    "end-time":"08:15"
