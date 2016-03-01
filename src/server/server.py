@@ -217,16 +217,14 @@ if True:
                 print "LED Reset"
 
         delta = (datetime.now() - timer_current)
-        sleepduration = delta.total_seconds() * 1000 + delta.microseconds / 1000
-
-        print sleepduration
+        sleepduration = (delta.total_seconds() + delta.microseconds / 1000000)
 
         if sleepduration < TOTAL_SLEEP:
-            time.sleep(TOTAL_SLEEP - sleepduration / 1000.0)
-            print "Sleep : " + str(TOTAL_SLEEP - sleepduration / 1000.0)
+            print "Sleep : " + str(TOTAL_SLEEP - sleepduration)
+            time.sleep(TOTAL_SLEEP - sleepduration)
         else:
             print "No sleep"
-        timer_lastloop = timer_current;   
+        timer_lastloop = timer_current
 #except:
     try:
         if not(_current is None):
