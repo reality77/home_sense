@@ -2,12 +2,12 @@
 
 import time
 import datetime
-from Adafruit_7Segment import SevenSegment
+from display import Display
 
 # ===========================================================================
 # Clock Example
 # ===========================================================================
-segment = SevenSegment(address=0x70)
+segment = Display(address=0x70)
 
 print "Press CTRL+Z to exit"
 
@@ -18,12 +18,14 @@ while(True):
   minute = now.minute
   second = now.second
   # Set hours
-  segment.writeDigit(0, int(hour / 10))     # Tens
-  segment.writeDigit(1, hour % 10)          # Ones
+  segment.writeChar(0, 'A')
+  segment.writeChar(1, 'Z')
+  segment.writeChar(2, 'C')
+  segment.writeChar(3, 'D')
+  #segment.writeDigit(0, 0xF)     # Tens
+  #segment.writeDigit(1, 0xF)          # Ones
   # Set minutes
-  segment.writeDigit(3, int(minute / 10))   # Tens
-  segment.writeDigit(4, minute % 10)        # Ones
-  # Toggle colon
-  segment.setColon(second % 2)              # Toggle colon at 1Hz
+  #segment.writeDigit(3, 0xF)   # Tens
+  #segment.writeDigit(4, OxF)        # Ones
   # Wait a quarter second (less than 1 second to prevent colon blinking getting in phase with odd/even seconds).
-  time.sleep(0.25)
+  time.sleep(1)

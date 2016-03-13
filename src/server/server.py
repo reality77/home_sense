@@ -25,6 +25,7 @@ else:
     from receiver import Receiver
     import RPi.GPIO as GPIO
     from busgo import BusGo
+    from display import Display
 
 from datetime import datetime
 from datetime import timedelta
@@ -67,6 +68,8 @@ MODE_SENSOR = 4
 MODE__MAX = 4
 
 MAX_SEND_RETRIES = 3
+
+_ledDisp = Display(address=0x70)
 
 _oBusgo = BusGo()
 _oTestled = TestLed()
@@ -149,6 +152,13 @@ def changeMode(mode):
 
 def display(data):
     #TODO Affichage alphanumerique
+    for i in range(0, 4):
+	if i < len(data):
+	    _ledDisp.writeChar(i, data[i])
+	else:
+	    _ledDisp.writeChar(i, ' ')
+	if i > 4:
+	    break
     print("Display : " + data)
 
 # **************** Working LED Functions
