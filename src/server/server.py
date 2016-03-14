@@ -20,6 +20,7 @@ if EXTERNAL_DEBUG_MODE:
     from DBG_receiver import Receiver
     import DBG_GPIO as GPIO
     from DBG_busgo import BusGo
+    from DBG_display import Display
 else:
     from led_communication import LedCommunication
     from receiver import Receiver
