@@ -10,7 +10,18 @@
 #define PIN_MESSAGE 13
 #define LED_COUNT 30
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+#define BRIGHTNESS_HIGH 127
+#define BRIGHTNESS_LOW 12
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, PIN, NEO_GRB + NEO_KHZ800);
+
+unsigned long _sleepStartTimer = 0;
+unsigned long _sleepSOFTInterval = 20 * 1000; // 20 sec
+unsigned long _sleepLEDOFFInterval = 5 * 60000; // 5 minutes
+unsigned long _sleepHARDInterval = 60 * 60000; // 60 minutes
+unsigned short _currentSleepMode = 0;
+
+unsigned short _currentBrightness;
 
 void setup()
 {
@@ -28,10 +39,81 @@ void setup()
     pinMode(PIN_MESSAGE, OUTPUT);
 
     strip.begin();
-    strip.setBrightness(8);
-    strip.show(); // Initialize all pixels to 'off'
+    setBrightness(BRIGHTNESS_HIGH);
+    
+    resetTimer();
 }
- 
+
+void resetTimer()
+{
+    _sleepStartTimer = millis();
+    _currentSleepMode = 0;
+}
+
+void checkSleep()
+{
+    unsigned long interval = millis() - _sleepStartTimer;
+
+    if(interval > _sleepHARDInterval && _currentSleepMode < 3)
+    {
+        _currentSleepMode = 3;
+        Serial.println("SLEEP MODE 3 : HARD ====> TODO");
+    }
+    else if(interval > _sleepLEDOFFInterval && _currentSleepMode < 2)
+    {
+        _currentSleepMode = 2;
+        Serial.println("SLEEP MODE 2 : LED OFF");
+        strip.clear();
+        strip.show();
+    }
+    else if(interval > _sleepSOFTInterval && _currentSleepMode < 1)
+    {
+        _currentSleepMode = 1;
+        Serial.println("SLEEP MODE 1 : SOFT");
+        setSmoothBrightness(BRIGHTNESS_LOW);
+    }
+}
+
+void setBrightness(unsigned short brightness)
+{
+    _currentBrightness = brightness;
+    strip.setBrightness(brightness);
+    strip.show();    
+}
+
+void setSmoothBrightness(unsigned short brightness)
+{
+    // change 10 points of brightness each 100ms
+    int i;
+   
+    if(_currentBrightness > brightness)
+    {
+        for (i = _currentBrightness; i > brightness; i -= 1)
+        {
+            delay(10);
+            if(i < brightness)
+                i = brightness;
+            strip.setBrightness(i);
+            strip.show();
+        }
+    }
+    else
+    {
+        for (i = _currentBrightness; i < brightness; i += 1)
+        {
+            delay(10);
+            if(i > brightness)
+                i = brightness;
+            strip.setBrightness(i);
+            strip.show();
+        }
+    }
+    
+    _currentBrightness = brightness;
+}
+
+// ************************** LOOP *****************************
+
 void loop()
 {
     uint8_t buf[VW_MAX_MESSAGE_LEN]; // Tableau qui va contenir le message reçu (de taille maximum VW_MAX_MESSAGE_LEN)
@@ -111,6 +193,8 @@ void loop()
       {
         Serial.println("Executing mode 0");
         strip.clear();
+        resetTimer();
+        setBrightness(BRIGHTNESS_HIGH);
         strip.show();
         Serial.println("Mode 0 done");
       }
@@ -119,6 +203,8 @@ void loop()
       {
         Serial.println("Executing mode 1");
         modeSetLedColors(current_data, current_data_len);
+        resetTimer();
+        setBrightness(BRIGHTNESS_HIGH);
         Serial.println("Mode 1 done");
       }
       break;
@@ -126,6 +212,8 @@ void loop()
       {
         Serial.println("Executing mode 2");
         modeSetLedColorsCount(current_data, current_data_len);
+        resetTimer();
+        setBrightness(BRIGHTNESS_HIGH);
         Serial.println("Mode 2 done");
       }
       break;
@@ -133,8 +221,8 @@ void loop()
       {
         Serial.println("Executing mode 3");
         int brightness = (int)buf[1];
-        strip.setBrightness(brightness);
-        strip.show();
+        resetTimer();
+        setBrightness(_currentBrightness);
         Serial.println("Mode 3 done");
       }
       break;
@@ -152,8 +240,9 @@ void loop()
         Serial.println("Exiting sleep mode");
       }
       break;
-     }
+    }
     
+    checkSleep();
 }
 
 void modeSetLedColors(uint8_t* buf, uint8_t buflen)

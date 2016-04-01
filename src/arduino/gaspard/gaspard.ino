@@ -65,6 +65,6 @@ void loop()
     digitalWrite(13, LOW);
 
     Serial.print("Data sent\r\n");
-    //delay(60000);
-    delay(5000);
+    //delay(60000000);
+    delay(30000);
 }
