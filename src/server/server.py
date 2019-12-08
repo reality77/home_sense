@@ -121,7 +121,7 @@ def changeMode(mode):
     ready_to_shutdown = False
 
     if mode == current_mode:
-    return 0
+        return 0
 
     current_mode = mode
 
@@ -158,13 +158,13 @@ def changeMode(mode):
 def display(data):
     #TODO Affichage alphanumerique
     for i in range(0, 4):
-    if i < len(data):
-        _ledDisp.writeChar(i, data[i])
-    else:
-        _ledDisp.writeChar(i, ' ')
-    if i > 4:
-        break
-    print("Display : " + data)
+        if i < len(data):
+            _ledDisp.writeChar(i, data[i])
+        else:
+            _ledDisp.writeChar(i, ' ')
+        if i > 4:
+            break
+        print("Display : " + data)
 
 # **************** Working LED Functions
 
@@ -208,42 +208,42 @@ if True:
         timerData = _timerCheck.check()
         if not(timerData is None):
             # Auto-mode activated
-        mode = int(timerData['mode'])
+            mode = int(timerData['mode'])
             if changeMode(mode):
-            print "--- Automatic mode changed"
+                print "--- Automatic mode changed"
         else:
-        # Auto-mode stopped
-        if current_mode != MODE_STOP:
-            changeMode(MODE_STOP)
-            print "--- Automatic mode stopped"
+            # Auto-mode stopped
+            if current_mode != MODE_STOP:
+                changeMode(MODE_STOP)
+                print "--- Automatic mode stopped"
 
-        if not(_current is None):
-            print "Running"
-            startWorking()
-            if _current.onRun((datetime.now() - timer_start).total_seconds()):
-                ledstrip_data = _current.getLedData()
-                ledstrip_retry = 0
-            stopWorking()
+            if not(_current is None):
+                print "Running"
+                startWorking()
+                if _current.onRun((datetime.now() - timer_start).total_seconds()):
+                    ledstrip_data = _current.getLedData()
+                    ledstrip_retry = 0
+                stopWorking()
 
-        if ledstrip_retry < MAX_SEND_RETRIES:
-            print "LED retry : " + str(ledstrip_retry)
-            ledstrip_retry = ledstrip_retry + 1
-            if not(ledstrip_data is None):
-                _ledComm.sendLedColors(ledstrip_data)
-                print "Sent to LED"
+            if ledstrip_retry < MAX_SEND_RETRIES:
+                print "LED retry : " + str(ledstrip_retry)
+                ledstrip_retry = ledstrip_retry + 1
+                if not(ledstrip_data is None):
+                    _ledComm.sendLedColors(ledstrip_data)
+                    print "Sent to LED"
+                else:
+                    _ledComm.sendLedReset()
+                    print "LED Reset"
+
+            delta = (datetime.now() - timer_current)
+            sleepduration = (delta.total_seconds() + delta.microseconds / 1000000)
+
+            if sleepduration < TOTAL_SLEEP:
+                print "Sleep : " + str(TOTAL_SLEEP - sleepduration)
+                time.sleep(TOTAL_SLEEP - sleepduration)
             else:
-                _ledComm.sendLedReset()
-                print "LED Reset"
-
-        delta = (datetime.now() - timer_current)
-        sleepduration = (delta.total_seconds() + delta.microseconds / 1000000)
-
-        if sleepduration < TOTAL_SLEEP:
-            print "Sleep : " + str(TOTAL_SLEEP - sleepduration)
-            time.sleep(TOTAL_SLEEP - sleepduration)
-        else:
-            print "No sleep"
-        timer_lastloop = timer_current
+                print "No sleep"
+            timer_lastloop = timer_current
 #except:
     try:
         if not(_current is None):
@@ -252,9 +252,9 @@ if True:
 
         # 3 attempts to light off the led strip
         _ledComm.sendLedReset()
-        sleep(2)
+        time.sleep(2)
         _ledComm.sendLedReset()
-        sleep(2)
+        time.sleep(2)
         _ledComm.sendLedReset()
     except:
         pass
