@@ -1,17 +1,25 @@
 #!/usr/bin/python
 
-# Thanks to contributors of vw.py (https://github.com/joan2937/pigpio) 
+# Thanks to contributors of vw.py (https://github.com/joan2937/pigpio)
 
 """
-TODO : 
-- When clicking the MODE button, don't change the mode directly  
+TODO :
+- When clicking the MODE button, don't change the mode directly
 but for the first click on the SELECT button to change it
 - Receiver management
 """
+from timer_check import TimerCheck
+from sensor import Sensor
+from testled import TestLed
+from weather import Weather
+import os
+import time
+from datetime import timedelta
+from datetime import datetime
 import json
 
 with open('config.json') as json_data_file:
-	config = json.load(json_data_file)['server']
+    config = json.load(json_data_file)['server']
 EXTERNAL_DEBUG_MODE = config['external_debug_mode']
 
 
@@ -28,15 +36,6 @@ else:
     from busgo import BusGo
     from display import Display
 
-from datetime import datetime
-from datetime import timedelta
-import time
-import os
-import json
-from weather import Weather
-from testled import TestLed
-from sensor import Sensor
-from timer_check import TimerCheck
 
 #********************* Init GPIO
 #led_working = 19
@@ -52,7 +51,7 @@ GPIO.setup(button_mode_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 #********************* Init global variables
 with open('config.json') as json_data_file:
-	config = json.load(json_data_file)['server']
+    config = json.load(json_data_file)['server']
 
 ready_to_shutdown = False
 current_mode = 0
@@ -83,26 +82,29 @@ _current = None
 _old = None
 
 # **************** Shutdown button
+
+
 def button_select_click(channel):
     global current_mode, ready_to_shutdown, automatic_mode
     automatic_mode = True
     if current_mode == MODE_STOP:
-        if not ready_to_shutdown :
+        if not ready_to_shutdown:
             display("STP?")
             ready_to_shutdown = True
-        else :
+        else:
             display("SHUT")
-	    if not(EXTERNAL_DEBUG_MODE):
-		GPIO.cleanup()
-	        os.system("sudo shutdown now -h")
-	    else:
-		print("DEBUG : SHUTDOWN BUTTON CLICKED")
-	    exit
-    else :
+        if not(EXTERNAL_DEBUG_MODE):
+            GPIO.cleanup()
+            os.system("sudo shutdown now -h")
+        else:
+            print("DEBUG : SHUTDOWN BUTTON CLICKED")
+            exit
+    else:
         if not(_current is None):
             _current.onSelect()
 
 # **************** Mode button
+
 def button_mode_click(channel):
     global current_mode, automatic_mode
     automatic_mode = False
@@ -113,12 +115,13 @@ def button_mode_click(channel):
     changeMode(mode)
 
 # **************** Mode button
+
 def changeMode(mode):
     global current_mode, ready_to_shutdown, _old, _current, ledstrip_data, ledstrip_retry, automatic_mode
     ready_to_shutdown = False
 
     if mode == current_mode:
-	return 0
+    return 0
 
     current_mode = mode
 
@@ -151,21 +154,24 @@ def changeMode(mode):
     ledstrip_retry = 0
     return 1
 
+
 def display(data):
     #TODO Affichage alphanumerique
     for i in range(0, 4):
-	if i < len(data):
-	    _ledDisp.writeChar(i, data[i])
-	else:
-	    _ledDisp.writeChar(i, ' ')
-	if i > 4:
-	    break
+    if i < len(data):
+        _ledDisp.writeChar(i, data[i])
+    else:
+        _ledDisp.writeChar(i, ' ')
+    if i > 4:
+        break
     print("Display : " + data)
 
 # **************** Working LED Functions
+
 def startWorking() :
     #GPIO.output(led_working, GPIO.HIGH)
     return
+
 
 def stopWorking() :
     #GPIO.output(led_working, GPIO.LOW)
@@ -178,15 +184,17 @@ def stopWorking() :
 #_current.onSelect()
 #fin test
 
+
 GPIO.add_event_detect(button_select_in, GPIO.RISING, callback=button_select_click, bouncetime=500)
-GPIO.add_event_detect(button_mode_in, GPIO.RISING, callback=button_mode_click, bouncetime=500)
+GPIO.add_event_detect(button_mode_in, GPIO.RISING,
+                      callback=button_mode_click, bouncetime=500)
 
 TOTAL_SLEEP = 2
 
 if True:
-#try :
+    #try :
     print "Starting main program"
-    
+
     timer_start = datetime.now()
     timer_current = 0
     timer_lastloop = 0
@@ -196,18 +204,18 @@ if True:
 
         timer_current = datetime.now()
 
-	if automatic_mode:
-	    timerData = _timerCheck.check()
-	    if not(timerData is None):
-	    	# Auto-mode activated
-		mode = int(timerData['mode'])
-	    	if changeMode(mode):
-		    print "--- Automatic mode changed"
-	    else:
-		# Auto-mode stopped
-		if current_mode != MODE_STOP:
-		    changeMode(MODE_STOP)
-		    print "--- Automatic mode stopped"
+    if automatic_mode:
+        timerData = _timerCheck.check()
+        if not(timerData is None):
+            # Auto-mode activated
+        mode = int(timerData['mode'])
+            if changeMode(mode):
+            print "--- Automatic mode changed"
+        else:
+        # Auto-mode stopped
+        if current_mode != MODE_STOP:
+            changeMode(MODE_STOP)
+            print "--- Automatic mode stopped"
 
         if not(_current is None):
             print "Running"
